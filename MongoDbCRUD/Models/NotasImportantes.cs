@@ -3,10 +3,9 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoDbCRUD.Models
 {
-    public class NotasImportantes
-    {
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+    [BsonCollection("NotasImportantes")]
+    public class NotasImportantes: BaseEntity
+    {        
         public string Nota { get; set; }        
     }
 }
