@@ -9,24 +9,39 @@ namespace Tests.TestUtils
 {
     public class TestFixture
     {
-        protected string ConnectionString { 
+        protected string ConnectionStringReplicaSet { 
             get 
             {
                 return "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0";
             }
         }
 
-        protected IMongoClient Client;
+        protected string ConnectionStringStandalone
+        {
+            get
+            {
+                return "mongodb://localhost:30000";
+            }
+        }
 
-        protected IMongoDatabase Database;
+        protected IMongoClient ClientReplicaSet;        
+        protected IMongoDatabase DatabaseReplicasetDbTest;
+        protected IMongoDatabase DatabaseReplicasetDbTest2;
+
+        protected IMongoClient ClientStandalone;
+        protected IMongoDatabase DatabaseStandalone;
 
         public TestFixture()
         {
             var dataBaseName = "DbTest";
-            Client = new MongoClient(ConnectionString);
-            Client.DropDatabase(dataBaseName);
 
-            Database = Client.GetDatabase(dataBaseName);
+            ClientReplicaSet = new MongoClient(ConnectionStringReplicaSet);
+            ClientReplicaSet.DropDatabase(dataBaseName);
+            DatabaseReplicasetDbTest = ClientReplicaSet.GetDatabase(dataBaseName);
+
+            ClientStandalone = new MongoClient(ConnectionStringStandalone);
+            ClientStandalone.DropDatabase(dataBaseName);
+            DatabaseStandalone = ClientStandalone.GetDatabase(dataBaseName);
         }
     }
 }
