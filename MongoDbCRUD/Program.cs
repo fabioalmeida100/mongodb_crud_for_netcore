@@ -19,7 +19,7 @@ namespace MongoDbCRUD
             {
                 Console.Clear();
                 Console.WriteLine(BuildMenu());
-                var optionMenu = Convert.ToInt32(Console.ReadLine());
+                int.TryParse(Console.ReadLine(), out var optionMenu);
 
                 switch (optionMenu)
                 {
@@ -32,6 +32,19 @@ namespace MongoDbCRUD
                     case 3:
                         await FindAll();
                         break;
+                    case 4:
+                        await FindOne();
+                        break;
+                    case 5:
+                        await UpdateOne();
+                        break;
+                    case 6:
+                        await DeleteOne();
+                        break;
+                    case 7:
+                        Console.WriteLine("Até a próxima :-)");
+                        repeatMenu = false;
+                        break;
                     default:
                         repeatMenu = false;
                         Console.WriteLine("Não escolheu uma opção válida");
@@ -39,13 +52,16 @@ namespace MongoDbCRUD
                 }
             } while (repeatMenu);
             
-        }        
-
+        }
         static string BuildMenu()
         {
             var menu = "1 - InsertOne - BsonDocument \n" +
                 "2 - InsertOne - OO \n" +
-                "3 - FindAll \n";
+                "3 - FindAll \n" +
+                "4 - FindOne \n" +
+                "5 - UpdateOne \n" +
+                "6 - DeleteOne \n" + 
+                "7 - Sair";
 
             return menu;
         }
@@ -97,38 +113,71 @@ namespace MongoDbCRUD
             Console.ReadKey();
         }
 
-        static void TransactionOperation()
+        public static async Task FindOne()
         {
-            var client = new MongoClient(MainConnectionString);
-
-            // Prereq: Create collections.
-            var database1 = client.GetDatabase("mydb-dont-exist");
-            var collection1 = database1.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
-            collection1.InsertOne(new BsonDocument("Nota", "Primeira nota"));
-
-            var database2 = client.GetDatabase("mydb-dont-exist-2");
-            var collection2 = database2.GetCollection<BsonDocument>("Tarefas").WithWriteConcern(WriteConcern.WMajority);
-            //collection2.InsertOne(new BsonDocument("Descricao", "Primeira tarefa"));
-
-            // Step 1: Start a client session.
-            using (var session = client.StartSession())
+            var notasImportantesRepository = new NotasImportantesRepository();
+            Console.WriteLine("Digite o objectId:");
+            var id = Console.ReadLine();
+            var anotacao = new NotasImportantes();
+            try
             {
-                try
+                anotacao = await notasImportantesRepository.GetById(id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            Console.WriteLine("Descrição da anotação {0}: ", anotacao.Nota);
+            Console.WriteLine();
+            Console.ReadKey();
+        }
+
+        public static async Task UpdateOne()
+        {
+            var notasImportantesRepository = new NotasImportantesRepository();
+            Console.WriteLine("Digite o objectId:");
+            var id = Console.ReadLine();            
+            try
+            {
+                var anotacao = await notasImportantesRepository.GetById(id);
+                if (anotacao == null)
                 {
-                    // Step 3: Define the sequence of operations to perform inside the transactions
-                    var result = session.WithTransaction(
-                        (s, ct) =>
-                        {
-                            collection1.InsertOne(s, new BsonDocument("Nota", "Segunda nota"), cancellationToken: ct);
-                            collection2.InsertOne(s, new BsonDocument("Descricao", "Terceira nota"), cancellationToken: ct);
-                            return "Inserted into collections in different databases";
-                        }, null, CancellationToken.None);
-                } 
-                catch (Exception ex)
+                    Console.WriteLine("Anotação não encontrada.");
+                }
+                else
                 {
-                    Console.WriteLine("Exception: {0}", ex.Message);
-                    Console.ReadKey();
-                }                
+                    Console.WriteLine("Digite a nova descrição:");                    
+                    anotacao.Nota = Console.ReadLine();
+                    notasImportantesRepository.UpdateById(anotacao);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public static async Task DeleteOne()
+        {
+            var notasImportantesRepository = new NotasImportantesRepository();
+            Console.WriteLine("Digite o objectId:");
+            var id = Console.ReadLine();
+            try
+            {
+                var anotacao = await notasImportantesRepository.GetById(id);
+                if (anotacao == null)
+                {
+                    Console.WriteLine("Anotação não encontrada.");
+                }
+                else
+                {
+                    notasImportantesRepository.DeleteById(id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

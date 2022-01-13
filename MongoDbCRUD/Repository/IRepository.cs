@@ -11,7 +11,7 @@ namespace MongoDbCRUD.Repository
         void Create(T entity);
         Task<IList<T>> GetAll();
         Task<T> GetById(string id);
-        void UpdateById(string id);
+        void UpdateById(T entity);
         void DeleteById(string id);
     }
 }
