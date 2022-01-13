@@ -50,14 +50,17 @@ namespace MongoDbCRUD.Repository
         public async Task<T> GetById(string id)
         {            
             var filter = Builders<T>.Filter;
-            var condition = filter.Ne(x => x.Id, string.Empty) & filter.Eq(x => x.Id, id);
+            var condition = filter.Eq(x => x.Id, id);
             
             return await Collection.Find(condition).FirstOrDefaultAsync();
         }
 
-        public void UpdateById(string id)
+        public async void UpdateById(T entity)
         {
-            throw new NotImplementedException();
+            var filter = Builders<T>.Filter;
+            var condition = filter.Eq(x => x.Id, entity.Id);
+            
+            await Collection.ReplaceOneAsync(condition, entity);
         }
     }
 }
