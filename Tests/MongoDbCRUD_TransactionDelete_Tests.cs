@@ -8,19 +8,18 @@ using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Tests.TryUpdateUsingTransaction
+namespace Tests.TryDeleteUsingTransaction
 {
-    public class MongoDbCRUD_TransactionUpdate_Tests: TestFixture
+    public class MongoDbCRUD_TransactionDelete_Tests: TestFixture
     {
         [Fact]
-        public async Task TryUpdateOneAsync_OneDocument_UpdateDocument()
+        public async Task TryDeleteOneAsync_OneDocument_DeleteDocument()
         {
             // Arrange
             var campo = "Nota";
             var primeiraAnotacao = "Primeira nota";
             var segundaAnotacao = "Segunda nota";
-            var terceiraAnotacao = "Terceira nota";
-            var segundaAnotacaoAtualizada = "Segunda nota - atualizada";
+            var terceiraAnotacao = "Terceira nota";            
 
             var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
             await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, primeiraAnotacao));
@@ -36,9 +35,8 @@ namespace Tests.TryUpdateUsingTransaction
                     session.StartTransaction();
                     
                     var filter = Builders<BsonDocument>.Filter.Eq(campo, segundaAnotacao);
-                    var update = Builders<BsonDocument>.Update.Set(campo, segundaAnotacaoAtualizada);
 
-                    await anotacoesCollection.UpdateOneAsync(session, filter, update);
+                    await anotacoesCollection.DeleteOneAsync(session, filter);
 
                     await session.CommitTransactionAsync();
                 }
@@ -51,15 +49,15 @@ namespace Tests.TryUpdateUsingTransaction
             //Assert
             var anotacoes = anotacoesCollection.Find(new BsonDocument()).ToList();
             anotacoes.Should().NotBeNull();
-            anotacoes.Count.Should().Be(3);
-                        
-            anotacoesCollection.Find(new BsonDocument(campo, segundaAnotacaoAtualizada)).CountDocuments().Should().Be(1);
+            anotacoes.Count.Should().Be(2);
+
+            anotacoesCollection.Find(new BsonDocument(campo, segundaAnotacao)).CountDocuments().Should().Be(0);
 
             exception.Should().BeNull();
         }
 
         [Fact]
-        public async Task TryUpdateManyAsync_VariousDocuments_UpdateDocuments()
+        public async Task TryDeleteManyAsync_VariousDocuments_DeleteDocuments()
         {
             // Arrange
             var campo = "Nota";
@@ -67,19 +65,15 @@ namespace Tests.TryUpdateUsingTransaction
             var segundaAnotacao = "Segunda nota";
             var terceiraAnotacao = "Terceira nota";
             var quartaAnotacao = "Quarta nota";
-            var quintaAnotacao = "Quinta nota";
-            var notaRepetida = "Nota repetida";
-            var notaRepetidaAtualizada = "Nota repetida - atualizada";
+            var quintaAnotacao = "Quinta nota";            
 
             var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
             await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, primeiraAnotacao));
             await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, segundaAnotacao));
             await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, terceiraAnotacao));
             await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, quartaAnotacao));
-            await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, quintaAnotacao));
-
-            anotacoesCollection.InsertOne(new BsonDocument(campo, notaRepetida));
-            anotacoesCollection.InsertOne(new BsonDocument(campo, notaRepetida));
+            await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, quintaAnotacao));            
+            
             Exception exception = null;
 
             // Act
@@ -88,10 +82,9 @@ namespace Tests.TryUpdateUsingTransaction
                 try
                 {
                     session.StartTransaction();
-                    
-                    var filter = Builders<BsonDocument>.Filter.Eq(campo, notaRepetida);
-                    var update = Builders<BsonDocument>.Update.Set(campo, notaRepetidaAtualizada);
-                    await anotacoesCollection.UpdateManyAsync(session, filter, update);
+
+                    var filter = Builders<BsonDocument>.Filter.Empty;
+                    await anotacoesCollection.DeleteManyAsync(session, filter);
 
                     await session.CommitTransactionAsync();
                 }
@@ -102,7 +95,7 @@ namespace Tests.TryUpdateUsingTransaction
             }
 
             //Assert
-            anotacoesCollection.Find(new BsonDocument(campo, notaRepetidaAtualizada)).CountDocuments().Should().Be(2);
+            anotacoesCollection.Find(new BsonDocument()).CountDocuments().Should().Be(0);
             exception.Should().BeNull();
         }
     }

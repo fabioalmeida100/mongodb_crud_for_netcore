@@ -9,7 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Tests.TryInsertOne
+namespace Tests.TryInsertUsingTransaction
 {
     public class MongoDbCRUD_TransactionInsert_Tests: TestFixture
     {
