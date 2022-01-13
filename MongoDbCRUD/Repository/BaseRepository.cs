@@ -37,11 +37,6 @@ namespace MongoDbCRUD.Repository
             await Collection.InsertOneAsync(entity);
         }
 
-        public void DeleteById(string id)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IList<T>> GetAll()
         {            
             return await Collection.Find(new BsonDocument()).ToListAsync();
@@ -61,6 +56,13 @@ namespace MongoDbCRUD.Repository
             var condition = filter.Eq(x => x.Id, entity.Id);
             
             await Collection.ReplaceOneAsync(condition, entity);
+        }
+        public async void DeleteById(string id)
+        {
+            var filter = Builders<T>.Filter;
+            var condition = filter.Eq(x => x.Id, id);
+
+            await Collection.DeleteOneAsync(condition);
         }
     }
 }
