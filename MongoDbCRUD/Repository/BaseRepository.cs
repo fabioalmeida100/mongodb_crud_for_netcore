@@ -4,7 +4,6 @@ using MongoDbCRUD.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MongoDbCRUD.Repository
@@ -44,14 +43,16 @@ namespace MongoDbCRUD.Repository
         }
 
         public async Task<IList<T>> GetAll()
-        {
-            var lista = await Collection.Find(new BsonDocument()).ToListAsync();
-            return lista;
+        {            
+            return await Collection.Find(new BsonDocument()).ToListAsync();
         }
 
         public async Task<T> GetById(string id)
-        {
-            throw new NotImplementedException();
+        {            
+            var filter = Builders<T>.Filter;
+            var condition = filter.Ne(x => x.Id, string.Empty) & filter.Eq(x => x.Id, id);
+            
+            return await Collection.Find(condition).FirstOrDefaultAsync();
         }
 
         public void UpdateById(string id)

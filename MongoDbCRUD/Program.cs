@@ -31,6 +31,9 @@ namespace MongoDbCRUD
                     case 3:
                         await FindAll();
                         break;
+                    case 4:
+                        await FindOne();
+                        break;
                     default:
                         repeatMenu = false;
                         Console.WriteLine("Não escolheu uma opção válida");
@@ -39,15 +42,12 @@ namespace MongoDbCRUD
             } while (repeatMenu);
             
         }
-
         static string BuildMenu()
         {
             var menu = "1 - InsertOne - BsonDocument \n" +
                 "2 - InsertOne - OO \n" +
                 "3 - FindAll \n" +
-                "4 - FindOne \n" +
-                "5 - DeleteOne \n" +
-                "6 - DeleteMany";
+                "4 - FindOne \n";
 
             return menu;
         }
@@ -96,6 +96,26 @@ namespace MongoDbCRUD
             {
                 Console.WriteLine(item.ToJson());
             }
+            Console.ReadKey();
+        }
+
+        public static async Task FindOne()
+        {
+            var notasImportantesRepository = new NotasImportantesRepository();
+            Console.WriteLine("Digite o objectId:");
+            var id = Console.ReadLine();
+            var anotacao = new NotasImportantes();
+            try
+            {
+                anotacao = await notasImportantesRepository.GetById(id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            Console.WriteLine("Descrição da anotação {0}: ", anotacao.Nota);
+            Console.WriteLine();
             Console.ReadKey();
         }
     }
