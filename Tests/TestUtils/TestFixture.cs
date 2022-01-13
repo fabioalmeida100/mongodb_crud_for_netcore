@@ -26,7 +26,6 @@ namespace Tests.TestUtils
 
         protected IMongoClient ClientReplicaSet;        
         protected IMongoDatabase DatabaseReplicasetDbTest;
-        protected IMongoDatabase DatabaseReplicasetDbTest2;
 
         protected IMongoClient ClientStandalone;
         protected IMongoDatabase DatabaseStandalone;
