@@ -12,7 +12,7 @@ namespace Tests.TestUtils
         protected string ConnectionStringReplicaSet { 
             get 
             {
-                return "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0";
+                return "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0&readPreference=primary&ssl=false";
             }
         }
 
@@ -20,7 +20,7 @@ namespace Tests.TestUtils
         {
             get
             {
-                return "mongodb://localhost:30000";
+                return "mongodb://mongo_root:mongo_root_password@localhost:30000/?ssl=false";
             }
         }
 
@@ -32,11 +32,10 @@ namespace Tests.TestUtils
 
         public TestFixture()
         {
-            var dataBaseName = "DbTest";
-
+            var dataBaseName = "DbTest-" + Guid.NewGuid();
             ClientReplicaSet = new MongoClient(ConnectionStringReplicaSet);
             ClientReplicaSet.DropDatabase(dataBaseName);
-            DatabaseReplicasetDbTest = ClientReplicaSet.GetDatabase(dataBaseName);
+            DatabaseReplicasetDbTest = ClientReplicaSet.GetDatabase(dataBaseName);            
 
             ClientStandalone = new MongoClient(ConnectionStringStandalone);
             ClientStandalone.DropDatabase(dataBaseName);
