@@ -321,10 +321,11 @@ namespace Tests.TryInsertUsingTransaction
         }
 
         [Fact]
-        public async Task TryInsertOneAsync_WhenDatabaseDontExist_ReturnExceptionAsync()
+        public async Task TryInsertOneAsync_WhenCollectionDontExist_ReturnExceptionAsync()
         {
             // Arrange
             var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
+            DatabaseReplicasetDbTest.CreateCollection("OtherCollection"); // Force create database
             Exception exception = null;
 
             // Act
@@ -333,7 +334,41 @@ namespace Tests.TryInsertUsingTransaction
                 try
                 {
                     session.StartTransaction();
-                    
+
+                    DatabaseReplicasetDbTest.CreateCollection(session, "Anotacoes"); // Try create collection inside transaction
+
+                    await anotacoesCollection.InsertOneAsync(session, new BsonDocument("Nota", "Segunda nota"));
+
+                    await session.CommitTransactionAsync();
+
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    await session.AbortTransactionAsync();
+                }
+            }
+
+            //Assert
+            exception.Should().NotBeNull();            
+            UtilsTest.CollectionExists(DatabaseReplicasetDbTest, "OtherCollection").Should().BeTrue();
+            UtilsTest.CollectionExists(DatabaseReplicasetDbTest, "Anotacoes").Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task TryInsertOneAsync_WhenDatabaseDontExist_ReturnExceptionAsync()
+        {
+            // Arrange
+            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);            
+            Exception exception = null;
+
+            // Act
+            using (var session = await ClientReplicaSet.StartSessionAsync())
+            {
+                try
+                {
+                    session.StartTransaction();                    
+
                     await anotacoesCollection.InsertOneAsync(session, new BsonDocument("Nota", "Segunda nota"));
 
                     await session.CommitTransactionAsync();
@@ -348,6 +383,7 @@ namespace Tests.TryInsertUsingTransaction
 
             //Assert
             exception.Should().NotBeNull();
+            UtilsTest.CollectionExists(DatabaseReplicasetDbTest, "Anotacoes").Should().BeFalse();            
         }
 
         [Fact]
@@ -486,6 +522,10 @@ namespace Tests.TryInsertUsingTransaction
 
             exception.Should().BeNull();
         }
+        #endregion
+
+        #region Helper
+
         #endregion
     }
 }
