@@ -34,7 +34,7 @@ namespace Tests.TryCRUDUsingTransaction
                 {
                     session.StartTransaction();
 
-                    // Insert 4 documents
+                    // Insert 3 documents
                     
                     await anotacoesCollection.InsertOneAsync(session,new BsonDocument(campo, segundaAnotacao));
                     await anotacoesCollection.InsertOneAsync(session,new BsonDocument(campo, terceiraAnotacao));
@@ -91,8 +91,7 @@ namespace Tests.TryCRUDUsingTransaction
                 {
                     session.StartTransaction();
 
-                    // Insert 4 documents
-
+                    // Insert 2 documents
                     await anotacoesCollection.InsertOneAsync(session, new BsonDocument(campo, anotacaoRepetida));
                     await anotacoesCollection.InsertOneAsync(session, new BsonDocument(campo, anotacaoRepetida));
 
