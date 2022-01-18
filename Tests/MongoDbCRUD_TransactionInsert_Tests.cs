@@ -360,7 +360,8 @@ namespace Tests.TryInsertUsingTransaction
         public async Task TryInsertOneAsync_WhenDatabaseDontExist_ReturnExceptionAsync()
         {
             // Arrange
-            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);            
+            var collectionAnotacoes = "Anotacoes";
+            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>(collectionAnotacoes).WithWriteConcern(WriteConcern.WMajority);            
             Exception exception = null;
 
             // Act
@@ -368,7 +369,7 @@ namespace Tests.TryInsertUsingTransaction
             {
                 try
                 {
-                    session.StartTransaction();                    
+                    session.StartTransaction();
 
                     await anotacoesCollection.InsertOneAsync(session, new BsonDocument("Nota", "Segunda nota"));
 
@@ -384,7 +385,7 @@ namespace Tests.TryInsertUsingTransaction
 
             //Assert
             exception.Should().NotBeNull();
-            UtilsTest.CollectionExists(DatabaseReplicasetDbTest, "Anotacoes").Should().BeFalse();            
+            UtilsTest.CollectionExists(DatabaseReplicasetDbTest, collectionAnotacoes).Should().BeFalse();
         }
 
         [Fact]
