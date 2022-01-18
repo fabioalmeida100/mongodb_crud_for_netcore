@@ -324,7 +324,8 @@ namespace Tests.TryInsertUsingTransaction
         public async Task TryInsertOneAsync_WhenCollectionDontExist_ReturnExceptionAsync()
         {
             // Arrange
-            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
+            var collectionAnotacoes = "Anotacoes";
+            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>(collectionAnotacoes).WithWriteConcern(WriteConcern.WMajority);
             DatabaseReplicasetDbTest.CreateCollection("OtherCollection"); // Force create database
             Exception exception = null;
 
@@ -335,7 +336,7 @@ namespace Tests.TryInsertUsingTransaction
                 {
                     session.StartTransaction();
 
-                    DatabaseReplicasetDbTest.CreateCollection(session, "Anotacoes"); // Try create collection inside transaction
+                    DatabaseReplicasetDbTest.CreateCollection(session, collectionAnotacoes); // Try create collection inside transaction
 
                     await anotacoesCollection.InsertOneAsync(session, new BsonDocument("Nota", "Segunda nota"));
 
