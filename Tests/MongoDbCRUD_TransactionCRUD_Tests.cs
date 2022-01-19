@@ -7,6 +7,7 @@ using Xunit;
 using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Tests.TryCRUDUsingTransaction
 {
@@ -72,7 +73,6 @@ namespace Tests.TryCRUDUsingTransaction
             exception.Should().BeNull();
         }
 
-        [Fact]
         public async Task TryCRUDOperation_WhenUpdateManyAsyncSomeDocuments_ExecuteAllOperations()
         {
             // Arrange
@@ -116,6 +116,52 @@ namespace Tests.TryCRUDUsingTransaction
             anotacoes.ForEach(x => x.GetValue(campo).Should().Be(anotacaoAtualizada));
 
             exception.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task TryCRUDOperation_WhenDeleteDocumentOutsideTransaction_WriteConflict()
+        {
+            // Arrange
+            var campo = "Nota";
+            var anotacaoRepetida = "Anotação Repetida";
+            var anotacaoAtualizada = "Anotações atualizada";
+            var anotacoesListaDesatualizada = new List<BsonDocument>();
+
+            var anotacoesCollection = DatabaseReplicasetDbTest.GetCollection<BsonDocument>("Anotacoes").WithWriteConcern(WriteConcern.WMajority);
+            await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, anotacaoRepetida));
+            await anotacoesCollection.InsertOneAsync(new BsonDocument(campo, anotacaoRepetida));
+            Exception exception = null;
+
+            // Act
+            using (var session = await ClientReplicaSet.StartSessionAsync())
+            {
+                try
+                {
+                    session.StartTransaction();
+                    anotacoesListaDesatualizada = anotacoesCollection.Find(session, new BsonDocument()).ToList();
+
+                    // Delete documenta outside transation (dont use session)
+                    var filter = Builders<BsonDocument>.Filter.Eq(campo, anotacaoRepetida);
+                    await anotacoesCollection.DeleteManyAsync(filter);
+
+                    // Try update deleted documents
+                    filter = Builders<BsonDocument>.Filter.Eq(campo, anotacaoRepetida);
+                    var update = Builders<BsonDocument>.Update.Set(campo, anotacaoAtualizada);
+                    await anotacoesCollection.UpdateManyAsync(session, filter, update);
+
+                    await session.CommitTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+                    await session.AbortTransactionAsync();
+                    exception = ex;
+                }
+            }
+
+            //Assert
+            anotacoesCollection.Find(new BsonDocument(campo, anotacaoAtualizada)).CountDocuments().Should().Be(0);
+            anotacoesListaDesatualizada.ForEach(item => { item.GetValue(campo).Should().Be(anotacaoRepetida); });
+            exception.Should().NotBeNull();
         }
     }
 }

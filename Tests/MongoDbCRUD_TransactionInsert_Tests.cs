@@ -479,7 +479,7 @@ namespace Tests.TryInsertUsingTransaction
         }
 
         [Fact]
-        public async Task TryInsertOneAsync5DocumentsAndCountDocumentsInsideTransation_WhenDatabaseExist_DontReturn5DocumentsButInsertDocuments()
+        public async Task TryInsertOneAsyncDocumentsAndCountDocumentsInsideTransation_WhenDatabaseExist_CountDocumentstAfterInsert()
         {
             // Arrange
             var campo = "Nota";
@@ -506,7 +506,7 @@ namespace Tests.TryInsertUsingTransaction
                     await anotacoesCollection.InsertOneAsync(session,new BsonDocument(campo, quartaAnotacao));
                     await anotacoesCollection.InsertOneAsync(session,new BsonDocument(campo, quintaAnotacao));
 
-                    countDocumentsInsideTransaction = anotacoesCollection.Find(new BsonDocument()).CountDocuments();
+                    countDocumentsInsideTransaction = anotacoesCollection.Find(session, new BsonDocument()).CountDocuments();
 
                     await session.CommitTransactionAsync();
                 }
@@ -520,14 +520,10 @@ namespace Tests.TryInsertUsingTransaction
             var anotacoes = anotacoesCollection.Find(new BsonDocument());
             anotacoes.CountDocuments().Should().Be(5);
 
-            countDocumentsInsideTransaction.Should().NotBe(5);
+            countDocumentsInsideTransaction.Should().Be(5);
 
             exception.Should().BeNull();
         }
-        #endregion
-
-        #region Helper
-
         #endregion
     }
 }
