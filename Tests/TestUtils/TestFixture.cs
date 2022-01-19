@@ -34,11 +34,9 @@ namespace Tests.TestUtils
         {
             var dataBaseName = "DbTest-" + Guid.NewGuid();
             ClientReplicaSet = new MongoClient(ConnectionStringReplicaSet);
-            ClientReplicaSet.DropDatabase(dataBaseName);
-            DatabaseReplicasetDbTest = ClientReplicaSet.GetDatabase(dataBaseName);            
+            DatabaseReplicasetDbTest = ClientReplicaSet.GetDatabase(dataBaseName);
 
             ClientStandalone = new MongoClient(ConnectionStringStandalone);
-            ClientStandalone.DropDatabase(dataBaseName);
             DatabaseStandalone = ClientStandalone.GetDatabase(dataBaseName);
         }
     }
