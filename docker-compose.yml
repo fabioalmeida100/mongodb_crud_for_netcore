@@ -1,0 +1,24 @@
+version: "3.5"
+services:
+  mongo-standalone:
+    image: mongo:4.0.19
+    container_name: mongocrud-mongo-standalone
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=mongo
+      - MONGO_INITDB_ROOT_USERNAME=mongo_root
+      - MONGO_INITDB_ROOT_PASSWORD=mongo_root_password
+    ports:
+      - "30000:27017"
+
+  mongo-replicaset:
+    image: candis/mongo-replica-set
+    container_name: mongocrud-mongo-replicaset
+    restart: always
+    ports: [ 
+      "27017:27017",
+      "27018:27018",
+      "27019:27019"
+    ]
+      
+      

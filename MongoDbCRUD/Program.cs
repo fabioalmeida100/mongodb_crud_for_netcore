@@ -4,12 +4,13 @@ using MongoDB.Bson;
 using System.Threading.Tasks;
 using MongoDbCRUD.Models;
 using MongoDbCRUD.Repository;
+using System.Threading;
 
 namespace MongoDbCRUD
 {
     internal class Program
     {
-        public static string MainConnectionString = "mongodb://localhost:27017";
+        public static string MainConnectionString = "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0";
         public static string MainDatabaseName = "Anotacoes";
         static async Task Main(string[] args)
         {
@@ -18,7 +19,7 @@ namespace MongoDbCRUD
             {
                 Console.Clear();
                 Console.WriteLine(BuildMenu());
-                var optionMenu = Convert.ToInt32(Console.ReadLine());
+                int.TryParse(Console.ReadLine(), out var optionMenu);
 
                 switch (optionMenu)
                 {
@@ -37,6 +38,13 @@ namespace MongoDbCRUD
                     case 5:
                         await UpdateOne();
                         break;
+                    case 6:
+                        await DeleteOne();
+                        break;
+                    case 7:
+                        Console.WriteLine("Até a próxima :-)");
+                        repeatMenu = false;
+                        break;
                     default:
                         repeatMenu = false;
                         Console.WriteLine("Não escolheu uma opção válida");
@@ -51,7 +59,9 @@ namespace MongoDbCRUD
                 "2 - InsertOne - OO \n" +
                 "3 - FindAll \n" +
                 "4 - FindOne \n" +
-                "5 - UpdateOne \n";
+                "5 - UpdateOne \n" +
+                "6 - DeleteOne \n" + 
+                "7 - Sair";
 
             return menu;
         }
@@ -127,11 +137,10 @@ namespace MongoDbCRUD
         {
             var notasImportantesRepository = new NotasImportantesRepository();
             Console.WriteLine("Digite o objectId:");
-            var id = Console.ReadLine();
-            var anotacao = new NotasImportantes();
+            var id = Console.ReadLine();            
             try
             {
-                anotacao = await notasImportantesRepository.GetById(id);
+                var anotacao = await notasImportantesRepository.GetById(id);
                 if (anotacao == null)
                 {
                     Console.WriteLine("Anotação não encontrada.");
@@ -141,6 +150,29 @@ namespace MongoDbCRUD
                     Console.WriteLine("Digite a nova descrição:");                    
                     anotacao.Nota = Console.ReadLine();
                     notasImportantesRepository.UpdateById(anotacao);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public static async Task DeleteOne()
+        {
+            var notasImportantesRepository = new NotasImportantesRepository();
+            Console.WriteLine("Digite o objectId:");
+            var id = Console.ReadLine();
+            try
+            {
+                var anotacao = await notasImportantesRepository.GetById(id);
+                if (anotacao == null)
+                {
+                    Console.WriteLine("Anotação não encontrada.");
+                }
+                else
+                {
+                    notasImportantesRepository.DeleteById(id);
                 }
             }
             catch (Exception ex)
