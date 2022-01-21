@@ -29,18 +29,11 @@ namespace Tests.TryInsertUsingTransaction
             // Act
             using (var session = ClientReplicaSet.StartSession())
             {
-                try
+                var result = session.WithTransaction((s, ct) =>
                 {
-                    var result = session.WithTransaction((s, ct) =>
-                    {
-                        anotacoesCollection.InsertOne(s, new BsonDocument(campo, segundaAnotacao), cancellationToken: ct);
-                        return "Inserted all documents";
-                    }, null, CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    exception = ex;
-                }
+                    anotacoesCollection.InsertOne(s, new BsonDocument(campo, segundaAnotacao), cancellationToken: ct);
+                    return "Inserted all documents";
+                }, null, CancellationToken.None);
             }
 
             //Assert
